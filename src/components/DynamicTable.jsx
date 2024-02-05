@@ -14,9 +14,21 @@ import {
 import DoneIcon from "@mui/icons-material/Done";
 import ClearIcon from "@mui/icons-material/Clear";
 
-// ... (imports)
+const PeopleColumn = ({ people }) => {
+  return (
+    <div>
+      {people.map((person, index) => (
+        <React.Fragment key={index}>
+          {person.name} - {person.description}
+          {index < people.length - 1 && <br />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
 
 const DynamicTable = ({ data, setData }) => {
+  console.log("data: ", data);
   const [editableCell, setEditableCell] = useState(null);
   const [tableData, setTableData] = useState(data);
   const [headers, setHeaders] = useState([
@@ -24,10 +36,24 @@ const DynamicTable = ({ data, setData }) => {
   ]);
 
   const handleCellClick = (rowIndex, colIndex) => {
+    const originalValue = tableData[rowIndex][headers[colIndex]];
+    const editableValue =
+      headers[colIndex] === "People"
+        ? originalValue.reduce(
+            (accumulator, person, index) =>
+              accumulator +
+              `${person.name} - ${person.description}${
+                index < originalValue.length - 1 ? "\n" : ""
+              }`,
+            ""
+          )
+        : JSON.stringify(originalValue);
+
     setEditableCell({
       rowIndex,
       colIndex,
-      originalValue: tableData[rowIndex][headers[colIndex]],
+      originalValue,
+      editableValue,
     });
   };
 
@@ -40,23 +66,35 @@ const DynamicTable = ({ data, setData }) => {
         i === rowIndex ? { ...row, [headers[colIndex]]: value } : row
       )
     );
+
+    setEditableCell((prevEditableCell) => ({
+      ...prevEditableCell,
+      editableValue: value, // Update editableValue in the editableCell state
+    }));
   };
 
   const handleCellSave = () => {
     setEditableCell(null);
-  };
 
-  const handleCellCancel = () => {
     setTableData((prevData) =>
       prevData.map((row, i) =>
         i === editableCell.rowIndex
           ? {
               ...row,
-              [headers[editableCell.colIndex]]: editableCell.originalValue,
+              [headers[editableCell.colIndex]]:
+                headers[editableCell.colIndex] === "People"
+                  ? editableCell.editableValue.split("\n").map((person) => {
+                      const [name, description] = person.split(" - ");
+                      return { name, description };
+                    })
+                  : editableCell.editableValue,
             }
           : row
       )
     );
+  };
+
+  const handleCellCancel = () => {
     setEditableCell(null);
   };
 
@@ -67,7 +105,7 @@ const DynamicTable = ({ data, setData }) => {
   const addRow = () => {
     const newRow = {};
     headers.forEach((header) => {
-      newRow[header] = "";
+      newRow[header] = header === "People" ? [] : ""; // Initialize "People" as an empty array
     });
     setTableData([...tableData, newRow]);
   };
@@ -118,13 +156,27 @@ const DynamicTable = ({ data, setData }) => {
                     editableCell.rowIndex === rowIndex &&
                     editableCell.colIndex === colIndex ? (
                       <div>
-                        <TextField
-                          value={row[header]}
-                          onChange={(event) => handleCellChange(event, header)}
-                          onBlur={handleBlur}
-                          autoFocus
-                          multiline
-                        />
+                        {header === "People" ? (
+                          <TextField
+                            value={editableCell.editableValue}
+                            onChange={(event) =>
+                              handleCellChange(event, header)
+                            }
+                            onBlur={handleBlur}
+                            autoFocus
+                            multiline
+                          />
+                        ) : (
+                          <TextField
+                            value={row[header]}
+                            onChange={(event) =>
+                              handleCellChange(event, header)
+                            }
+                            onBlur={handleBlur}
+                            autoFocus
+                            multiline
+                          />
+                        )}
                         <IconButton onClick={handleCellSave}>
                           <DoneIcon />
                         </IconButton>
@@ -134,15 +186,11 @@ const DynamicTable = ({ data, setData }) => {
                       </div>
                     ) : (
                       <div>
-                        {Array.isArray(row[header])
-                          ? row[header].map((person, personIndex) => (
-                              <React.Fragment key={personIndex}>
-                                {person.name || "N/A"}:{" "}
-                                {person.description || "N/A"}
-                                {personIndex < row[header].length - 1 && <br />}
-                              </React.Fragment>
-                            ))
-                          : row[header] || "N/A"}
+                        {header === "People" ? (
+                          <PeopleColumn people={row[header]} />
+                        ) : (
+                          row[header] || "N/A"
+                        )}
                       </div>
                     )}
                   </TableCell>

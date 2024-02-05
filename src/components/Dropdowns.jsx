@@ -1,11 +1,6 @@
+// src/components/Dropdowns.jsx
 import React from "react";
-import {
-  Input,
-  InputLabel,
-  FormControl,
-  MenuItem,
-  Select,
-} from "@mui/material";
+import { Input, InputLabel, FormControl } from "@mui/material";
 
 const Dropdowns = ({ category, variables, onChange }) => {
   const handleChange = (variable, event) => {

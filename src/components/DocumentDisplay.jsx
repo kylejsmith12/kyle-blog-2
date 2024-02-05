@@ -1,3 +1,4 @@
+// DocumentDisplay.jsx
 import React from "react";
 
 const DocumentDisplay = React.forwardRef(({ title, paragraphs }, ref) => {

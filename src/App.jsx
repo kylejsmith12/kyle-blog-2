@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState, useRef } from "react";
 import {
   Container,
@@ -7,10 +8,6 @@ import {
   Typography,
   AppBar,
   CssBaseline,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
 } from "@mui/material";
 import DocumentDisplay from "./components/DocumentDisplay";
 import Dropdowns from "./components/Dropdowns";
@@ -38,6 +35,7 @@ const tableData = [
   },
   // Add more rows as needed
 ];
+
 const tableHeaders = ["Subject", "People", "House"];
 
 const App = () => {
@@ -142,11 +140,37 @@ const App = () => {
       "lordOfTheRings"
     );
 
-    return selectedView === "all"
-      ? [...harryPotterParagraphs, ...lordOfTheRingsParagraphs]
-      : selectedCategory === "harryPotter"
-      ? harryPotterParagraphs
-      : lordOfTheRingsParagraphs;
+    const content =
+      selectedView === "all"
+        ? [
+            ...harryPotterParagraphs,
+            <hr key="separator" />,
+            <DynamicTable
+              key="dynamicTable"
+              headers={tableHeaders}
+              data={tableData}
+            />,
+            ...lordOfTheRingsParagraphs,
+          ]
+        : selectedCategory === "harryPotter"
+        ? [
+            ...harryPotterParagraphs,
+            <DynamicTable
+              key="dynamicTable"
+              headers={tableHeaders}
+              data={tableData}
+            />,
+          ]
+        : [
+            ...lordOfTheRingsParagraphs,
+            <DynamicTable
+              key="dynamicTable"
+              headers={tableHeaders}
+              data={tableData}
+            />,
+          ];
+
+    return content;
   };
 
   const handleExportPDF = async () => {
@@ -187,10 +211,6 @@ const App = () => {
           <Typography variant="h6">My Blog</Typography>
         </Toolbar>
       </AppBar>
-      <div>
-        <h1>Dynamic Table Example</h1>
-        <DynamicTable headers={tableHeaders} data={tableData} />
-      </div>
       <Toolbar />
       <Grid container style={{ width: "100%" }}>
         <Grid
@@ -202,50 +222,18 @@ const App = () => {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            marginBottom: "20px", // Add spacing at the bottom
+            marginBottom: "20px",
           }}
         >
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <FormControl style={{ minWidth: "120px", marginBottom: "10px" }}>
-                <InputLabel id="view-select-label">View</InputLabel>
-                <Select
-                  labelId="view-select-label"
-                  id="view-select"
-                  value={selectedView}
-                  onChange={(e) => setSelectedView(e.target.value)}
-                >
-                  <MenuItem value="single">Single</MenuItem>
-                  <MenuItem value="all">All</MenuItem>
-                </Select>
-              </FormControl>
+              <Dropdowns
+                category={selectedCategory}
+                variables={variables[selectedCategory]}
+                onChange={handleDropdownChange}
+              />
             </Grid>
-            {selectedView !== "all" && (
-              <Grid item xs={12}>
-                <FormControl
-                  style={{ minWidth: "120px", marginBottom: "10px" }}
-                >
-                  <InputLabel id="category-select-label">Category</InputLabel>
-                  <Select
-                    labelId="category-select-label"
-                    id="category-select"
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                  >
-                    <MenuItem value="harryPotter">Harry Potter</MenuItem>
-                    <MenuItem value="lordOfTheRings">
-                      Lord of the Rings
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            )}
           </Grid>
-          <Dropdowns
-            category={selectedCategory}
-            variables={variables[selectedCategory]}
-            onChange={handleDropdownChange}
-          />
         </Grid>
         <Grid item xs={12} md={8}>
           <DocumentDisplay

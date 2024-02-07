@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -27,13 +27,41 @@ const PeopleColumn = ({ people }) => {
   );
 };
 
-const DynamicTable = ({ data, setData }) => {
+const DynamicTable = ({ data, setData, variableOptions }) => {
   console.log("data: ", data);
   const [editableCell, setEditableCell] = useState(null);
   const [tableData, setTableData] = useState(data);
   const [headers, setHeaders] = useState([
     ...new Set(data.flatMap((row) => Object.keys(row))),
   ]);
+  const [key, setKey] = useState(0); // Unique key to force re-render
+
+  useEffect(() => {
+    // Update table data when variableOptions changes
+    if (variableOptions) {
+      setTableData((prevData) =>
+        prevData.map((row) => {
+          let newRow = { ...row };
+          Object.entries(variableOptions).forEach(([variable, value]) => {
+            newRow.Subject = newRow.Subject.replace(
+              new RegExp("\\$\\{" + variable + "\\}", "g"),
+              value
+            );
+            if (newRow.People) {
+              newRow.People = newRow.People.map((person) => ({
+                ...person,
+                description: person.description.replace(
+                  new RegExp("\\$\\{" + variable + "\\}", "g"),
+                  value
+                ),
+              }));
+            }
+          });
+          return newRow;
+        })
+      );
+    }
+  }, [variableOptions]);
 
   const handleCellClick = (rowIndex, colIndex) => {
     const originalValue = tableData[rowIndex][headers[colIndex]];
@@ -120,6 +148,23 @@ const DynamicTable = ({ data, setData }) => {
     }
   };
 
+  const getHouseColor = (house) => {
+    switch (house.toLowerCase()) {
+      case "hogwarts":
+        return "orange";
+      case "gryffindor":
+        return "red";
+      case "slytherin":
+        return "green";
+      case "hufflepuff":
+        return "yellow";
+      case "ravenclaw":
+        return "purple";
+      default:
+        return "white";
+    }
+  };
+
   return (
     <div>
       <Button variant="contained" color="primary" onClick={addRow}>
@@ -146,7 +191,7 @@ const DynamicTable = ({ data, setData }) => {
                     style={
                       colIndex === 2 && header === "House"
                         ? {
-                            color: row[header] === "Hogwarts" ? "red" : "gold",
+                            padding: "8px", // Add padding for better visibility
                           }
                         : {}
                     }
@@ -188,6 +233,19 @@ const DynamicTable = ({ data, setData }) => {
                       <div>
                         {header === "People" ? (
                           <PeopleColumn people={row[header]} />
+                        ) : Array.isArray(row[header]) ? (
+                          row[header].map((word, index) => (
+                            <React.Fragment key={index}>
+                              <span
+                                style={{
+                                  color: getHouseColor(word.toLowerCase()),
+                                }}
+                              >
+                                {word}
+                              </span>
+                              {index < row[header].length - 1 && " / "}
+                            </React.Fragment>
+                          ))
                         ) : (
                           row[header] || "N/A"
                         )}

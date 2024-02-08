@@ -17,15 +17,43 @@ import html2pdf from "html2pdf.js";
 import DynamicTable from "./components/DynamicTable";
 import Dropdowns from "./components/Dropdowns";
 
+const initialVariables = {
+  harryPotter: {
+    variable1: "Dursleys",
+    variable2: "Privet Drive",
+    variable3: "Dudley Dursley",
+  },
+  lordOfTheRings: {
+    variable1: "Galadriel",
+    variable2: "Sam",
+    variable3: "Lorien",
+  },
+  dynamicTable: {
+    variable0: "boy",
+    variable1: "friend",
+    variable2: "reliable",
+    variable3: "Hermione",
+  },
+};
+
 const tableData = [
   {
     Subject: "Hogwarts",
     People: [
-      { name: "Harry Potter", description: "The ${variable0} Who Lived" },
-      { name: "Ron Weasley", description: "Best ${variable1} of Harry" },
-      { name: "${variable3} Granger", description: "Smart and ${variable2}" },
+      {
+        name: "Harry Potter",
+        description: `The ${initialVariables.dynamicTable.variable0} Who Lived`,
+      },
+      {
+        name: "Ron Weasley",
+        description: `Best ${initialVariables.dynamicTable.variable1} of Harry`,
+      },
+      {
+        name: initialVariables.dynamicTable.variable3 + " Granger",
+        description: `Smart and ${initialVariables.dynamicTable.variable2}`,
+      },
     ],
-    House: ["Hogwarts", "Ravenclaw", "Gryphindor", "Slytherin", "hufflepuff"],
+    House: ["Hogwarts", "Ravenclaw", "Gryffindor", "Slytherin", "Hufflepuff"],
   },
   {
     Subject: "Lord of the Rings",
@@ -42,25 +70,7 @@ const tableData = [
 const tableHeaders = ["Subject", "People", "House"];
 
 const App = () => {
-  const [variables, setVariables] = useState({
-    harryPotter: {
-      variable1: "Dursleys",
-      variable2: "Privet Drive",
-      variable3: "Dudley Dursley",
-    },
-    lordOfTheRings: {
-      variable1: "Galadriel",
-      variable2: "Sam",
-      variable3: "Lorien",
-    },
-    dynamicTable: {
-      variable0: "boy",
-      variable1: "friend",
-      variable2: "reliable",
-      variable3: "hermione",
-    },
-  });
-
+  const [variables, setVariables] = useState(initialVariables);
   const [selectedCategory, setSelectedCategory] = useState("harryPotter");
   const [selectedView, setSelectedView] = useState("single"); // 'single' or 'all'
 
@@ -74,6 +84,7 @@ const App = () => {
         [variable]: value,
       },
     }));
+    console.log("Updated variables:", category, variable, value);
   };
 
   const generateDocumentContent = () => {
@@ -144,7 +155,7 @@ const App = () => {
         <DynamicTable
           headers={tableHeaders}
           data={tableData}
-          variableOptions={variables[selectedCategory]}
+          variables={variables[selectedCategory]} // Ensure that this line is correct
         />
       );
     } else {
@@ -168,7 +179,7 @@ const App = () => {
           <DynamicTable
             headers={tableHeaders}
             data={tableData}
-            variableOptions={variables[selectedCategory]}
+            variables={variables[selectedCategory]} // Ensure that this line is correct
           />
         );
       }

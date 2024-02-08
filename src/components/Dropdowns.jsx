@@ -1,23 +1,20 @@
-// src/components/Dropdowns.jsx
 import React from "react";
-import { Input, InputLabel, FormControl } from "@mui/material";
+import { TextField } from "@mui/material";
 
 const Dropdowns = ({ category, variables, onChange }) => {
-  const handleChange = (variable, event) => {
-    onChange(category, variable, event.target.value);
+  const handleVariableChange = (variable, value) => {
+    onChange(category, variable, value);
   };
 
   return (
     <div>
-      {Object.entries(variables).map(([variable, value]) => (
-        <FormControl key={variable} fullWidth style={{ marginBottom: "10px" }}>
-          <InputLabel>{variable}</InputLabel>
-          <Input
-            type="text"
-            value={value}
-            onChange={(e) => handleChange(variable, e)}
-          />
-        </FormControl>
+      {Object.keys(variables).map((variableName) => (
+        <TextField
+          key={variableName}
+          label={variableName.charAt(0).toUpperCase() + variableName.slice(1)}
+          value={variables[variableName]}
+          onChange={(e) => handleVariableChange(variableName, e.target.value)}
+        />
       ))}
     </div>
   );

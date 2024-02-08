@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -14,54 +14,31 @@ import {
 import DoneIcon from "@mui/icons-material/Done";
 import ClearIcon from "@mui/icons-material/Clear";
 
-const PeopleColumn = ({ people }) => {
+const PeopleColumn = ({ people, variables }) => {
   return (
     <div>
       {people.map((person, index) => (
         <React.Fragment key={index}>
-          {person.name} - {person.description}
+          {person.name} -{" "}
+          {person.description.replace(
+            /\${([^}]+)}/g,
+            (match, p1) => variables[p1] || match
+          )}
           {index < people.length - 1 && <br />}
         </React.Fragment>
       ))}
     </div>
   );
 };
+const DynamicTable = ({ data, setData, variables }) => {
+  console.log("Variables:", variables);
 
-const DynamicTable = ({ data, setData, variableOptions }) => {
-  console.log("data: ", data);
   const [editableCell, setEditableCell] = useState(null);
   const [tableData, setTableData] = useState(data);
   const [headers, setHeaders] = useState([
     ...new Set(data.flatMap((row) => Object.keys(row))),
   ]);
   const [key, setKey] = useState(0); // Unique key to force re-render
-
-  useEffect(() => {
-    // Update table data when variableOptions changes
-    if (variableOptions) {
-      setTableData((prevData) =>
-        prevData.map((row) => {
-          let newRow = { ...row };
-          Object.entries(variableOptions).forEach(([variable, value]) => {
-            newRow.Subject = newRow.Subject.replace(
-              new RegExp("\\$\\{" + variable + "\\}", "g"),
-              value
-            );
-            if (newRow.People) {
-              newRow.People = newRow.People.map((person) => ({
-                ...person,
-                description: person.description.replace(
-                  new RegExp("\\$\\{" + variable + "\\}", "g"),
-                  value
-                ),
-              }));
-            }
-          });
-          return newRow;
-        })
-      );
-    }
-  }, [variableOptions]);
 
   const handleCellClick = (rowIndex, colIndex) => {
     const originalValue = tableData[rowIndex][headers[colIndex]];
@@ -232,7 +209,10 @@ const DynamicTable = ({ data, setData, variableOptions }) => {
                     ) : (
                       <div>
                         {header === "People" ? (
-                          <PeopleColumn people={row[header]} />
+                          <PeopleColumn
+                            people={row[header]}
+                            variables={variables}
+                          />
                         ) : Array.isArray(row[header]) ? (
                           row[header].map((word, index) => (
                             <React.Fragment key={index}>
@@ -247,7 +227,10 @@ const DynamicTable = ({ data, setData, variableOptions }) => {
                             </React.Fragment>
                           ))
                         ) : (
-                          row[header] || "N/A"
+                          // Replace variables in the description
+                          row[header].replace(/\${([^}]+)}/g, (match, p1) =>
+                            variables[p1] ? variables[p1] : match
+                          ) || "N/A"
                         )}
                       </div>
                     )}
